@@ -3,9 +3,13 @@
 import React, { Component, ReactNode } from 'react';
 import { hubClient, isRunningInHub } from '../client';
 
-interface ErrorBoundaryProps {
+export interface ErrorBoundaryProps {
   children: ReactNode;
   fallback?: ReactNode;
+  /** Called when an error is caught. Receives the error and error info. */
+  onError?: (error: Error, errorInfo: React.ErrorInfo) => void;
+  /** If true, automatically report 500 error to hub on unhandled errors. Default: true */
+  reportToHub?: boolean;
 }
 
 interface ErrorBoundaryState {
@@ -26,9 +30,15 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo): void {
     console.error('[Apollo SDK] Error caught by boundary:', error, errorInfo);
 
-    // Report to hub
-    if (isRunningInHub()) {
-      hubClient.reportError(500);
+    // Call optional error handler
+    this.props.onError?.(error, errorInfo);
+
+    // Report to hub if enabled (default: true)
+    const shouldReport = this.props.reportToHub !== false;
+    if (shouldReport && isRunningInHub()) {
+      hubClient.reportError(500).catch((err) => {
+        console.error('[Apollo SDK] Failed to report error to hub:', err);
+      });
     }
   }
 

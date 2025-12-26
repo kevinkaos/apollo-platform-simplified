@@ -1,14 +1,15 @@
 'use client';
 
 import React, { ReactNode } from 'react';
-import { Sidebar } from './Sidebar';
-import { Header } from './Header';
-import { Footer } from './Footer';
+import { Sidebar } from './components';
+import { Header } from './components';
+import { Footer } from './components';
 import type { NavLevel1, SidebarState, User, BreadcrumbItem } from '@apollo/shared';
+import { sidebarNav } from '@apollo/shared';
 
-interface ShellLayoutProps {
+export interface ShellLayoutProps {
   children: ReactNode;
-  nav: NavLevel1[];
+  nav?: NavLevel1[];
   currentPath: string;
   sidebarState: SidebarState;
   user: User | null;
@@ -21,7 +22,7 @@ interface ShellLayoutProps {
 
 export function ShellLayout({
   children,
-  nav,
+  nav = sidebarNav,
   currentPath,
   sidebarState,
   user,

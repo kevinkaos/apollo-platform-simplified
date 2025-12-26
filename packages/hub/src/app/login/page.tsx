@@ -19,7 +19,15 @@ export default function LoginPage() {
       // TODO: Replace with actual auth logic
       if (email && password) {
         // Simulate auth - in real app, call auth API
-        localStorage.setItem('apollo_auth', JSON.stringify({ email }));
+        // Store user object matching the User type from @apollo/shared
+        const user = {
+          id: crypto.randomUUID(),
+          name: email.split('@')[0],
+          email: email,
+        };
+        localStorage.setItem('apollo_auth', JSON.stringify({ user }));
+        // Set auth cookie for middleware
+        document.cookie = `apollo_auth_token=${btoa(email)}; path=/`;
         router.push('/employees/list');
       } else {
         setError('Please enter email and password');

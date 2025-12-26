@@ -1,4 +1,4 @@
-import { ForbiddenPage } from '../ErrorPages';
+import { ForbiddenPage } from '../../ErrorPages';
 
 export default function Forbidden() {
   return <ForbiddenPage />;

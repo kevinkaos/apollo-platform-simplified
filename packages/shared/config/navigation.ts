@@ -1,4 +1,4 @@
-import { NavLevel1 } from '../types';
+import type { NavLevel1 } from '../types';
 
 export const sidebarNav: NavLevel1[] = [
   {

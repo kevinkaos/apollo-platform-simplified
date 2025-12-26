@@ -1,4 +1,4 @@
-import { ServerErrorPage } from '../ErrorPages';
+import { ServerErrorPage } from '../../ErrorPages';
 
 export default function ServerError() {
   return <ServerErrorPage />;

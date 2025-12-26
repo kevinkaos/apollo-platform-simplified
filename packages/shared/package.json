@@ -1,0 +1,21 @@
+{
+  "name": "@apollo/shared",
+  "version": "1.0.0",
+  "private": true,
+  "main": "./index.ts",
+  "types": "./index.ts",
+  "exports": {
+    ".": {
+      "types": "./index.ts",
+      "default": "./index.ts"
+    },
+    "./types": {
+      "types": "./types.ts",
+      "default": "./types.ts"
+    },
+    "./config/*": {
+      "types": "./config/*.ts",
+      "default": "./config/*.ts"
+    }
+  }
+}

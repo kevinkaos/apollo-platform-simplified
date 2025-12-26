@@ -33,7 +33,7 @@ function sendToHub<T = void>(type: string, payload?: unknown): Promise<T> {
   if (!isRunningInHub()) {
     return Promise.resolve(undefined as T);
   }
-  return postRobot.send(window.parent, type, payload).then((res) => res.data);
+  return postRobot.send(window.parent, type, payload).then((res) => (res as { data: T }).data);
 }
 
 export const hubClient: HubClient = {

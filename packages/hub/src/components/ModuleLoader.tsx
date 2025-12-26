@@ -2,18 +2,23 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { User, SidebarState } from '@apollo/shared';
-import { buildModuleUrl, getModuleByPath, getExpandedSectionsForPath } from '@apollo/shared';
-import { ShellLayout } from './ShellLayout';
+import type { User, SidebarState, BreadcrumbItem } from '@apollo/shared';
+import {
+  resolveModuleUrl,
+  getModuleByPath,
+  getDefaultExpandedSections,
+  sidebarNav,
+} from '@apollo/shared';
+import { ShellLayout } from '@apollo/sdk';
 import { SkeletonShell } from './Skeleton';
 import { IframeContainer } from './IframeContainer';
-import { initHubMessaging } from '../lib/hubMessaging';
+import { initHubMessaging, sendRouteChangeToModule } from '../messaging/hubMessaging';
 import {
   getSidebarState,
   setSidebarState,
   setCollapsed,
   toggleSection,
-} from '../lib/sidebarState';
+} from '../hooks/sidebarState';
 
 const READY_TIMEOUT = 5000; // 5 seconds
 const MIN_SKELETON_TIME = 300; // 300ms minimum skeleton display to prevent flash
@@ -63,29 +68,51 @@ export function ModuleLoader({ user, onLogout }: ModuleLoaderProps) {
 
   // Error handler
   const handleError = useCallback((code: 403 | 404 | 500) => {
-    router.push(`/${code}`);
+    router.push(`/errors/${code}`);
   }, [router]);
 
   // Initialize messaging
   useEffect(() => {
     const cleanup = initHubMessaging({
       onNavigate: handleNavigate,
-      onReady: handleReady,
+      onBreadcrumbsChange: () => {}, // Not used in this component
+      onLoadingChange: (loading) => {
+        if (!loading) handleReady('module');
+      },
       onLogout,
       onError: handleError,
+      onSidebarStateChange: (state) => {
+        setSidebarState(state);
+        setSidebarStateLocal(state);
+      },
       getUser: () => user,
+      getSidebarState: () => sidebarState,
+      getCurrentRoute: () => ({ path: pathname }),
     });
 
     return cleanup;
-  }, [handleNavigate, handleReady, onLogout, handleError, user]);
+  }, [handleNavigate, handleReady, onLogout, handleError, user, sidebarState, pathname]);
+
+  // Handle browser back/forward - notify iframe of route changes
+  useEffect(() => {
+    const handlePopState = () => {
+      const iframe = iframeRef.current;
+      if (iframe && !loading) {
+        sendRouteChangeToModule(iframe, { path: window.location.pathname });
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [loading]);
 
   // Handle path changes - load appropriate module
   useEffect(() => {
-    const moduleUrl = buildModuleUrl(pathname);
+    const moduleUrl = resolveModuleUrl(pathname);
 
     if (!moduleUrl) {
       // No module for this path - shouldn't happen in catchall
-      router.push('/404');
+      router.push('/errors/404');
       return;
     }
 
@@ -95,7 +122,7 @@ export function ModuleLoader({ user, onLogout }: ModuleLoaderProps) {
     setIframeSrc(moduleUrl);
 
     // Auto-expand sidebar sections for current path
-    const expanded = getExpandedSectionsForPath(pathname);
+    const expanded = getDefaultExpandedSections(pathname);
     const currentState = getSidebarState();
     if (expanded.length > 0) {
       const newState = {
@@ -109,7 +136,7 @@ export function ModuleLoader({ user, onLogout }: ModuleLoaderProps) {
     // Set timeout for READY signal
     timeoutRef.current = setTimeout(() => {
       console.error(`[Hub] Module did not send READY within ${READY_TIMEOUT}ms`);
-      router.push('/500');
+      router.push('/errors/500');
     }, READY_TIMEOUT);
 
     return () => {
@@ -131,23 +158,30 @@ export function ModuleLoader({ user, onLogout }: ModuleLoaderProps) {
     setSidebarStateLocal(getSidebarState());
   }, []);
 
+  const module = getModuleByPath(pathname);
+
   return (
     <ShellLayout
+      nav={sidebarNav}
       currentPath={pathname}
       sidebarState={sidebarState}
+      user={user}
+      breadcrumbs={[]}
       onNavigate={handleNavigate}
-      onToggleCollapse={handleToggleCollapse}
-      onToggleSection={handleToggleSection}
+      onToggleSidebarCollapse={handleToggleCollapse}
+      onToggleSidebarSection={handleToggleSection}
+      onLogout={onLogout}
     >
       {/* Skeleton (visible during loading) */}
       {loading && <SkeletonShell />}
 
       {/* Iframe (hidden until ready) */}
-      {iframeSrc && (
+      {iframeSrc && module && (
         <IframeContainer
+          ref={iframeRef}
           src={iframeSrc}
+          moduleId={module.id}
           visible={!loading}
-          onIframeRef={(ref) => { iframeRef.current = ref; }}
         />
       )}
     </ShellLayout>

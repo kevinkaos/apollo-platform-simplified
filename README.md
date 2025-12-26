@@ -1,16 +1,16 @@
-# Apollo Platform - Minimal Architecture
+# Apollo Platform
 
 A microfrontend shell that provides consistent UI chrome (sidebar, header, footer, breadcrumbs) across multiple frontend applications embedded via iframes.
 
-## Architecture Overview
+## Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  Apollo Hub                                                 │
+│  Apollo Hub (Next.js)                                       │
 │  ┌──────────┐  ┌──────────────────────────────────────────┐ │
 │  │ Sidebar  │  │ Header + Breadcrumbs                     │ │
-│  │          │  ├──────────────────────────────────────────┤ │
-│  │          │  │                                          │ │
+│  │ (3-level │  ├──────────────────────────────────────────┤ │
+│  │  nav)    │  │                                          │ │
 │  │          │  │  <iframe src="module-url">               │ │
 │  │          │  │    Remote Frontend (React/Next.js)       │ │
 │  │          │  │    └── Uses @apollo/sdk                  │ │
@@ -21,181 +21,102 @@ A microfrontend shell that provides consistent UI chrome (sidebar, header, foote
 └─────────────────────────────────────────────────────────────┘
 ```
 
-## Line Count Summary
+## Quick Start
 
-| Package | Files | Lines | Purpose |
-|---------|-------|-------|---------|
-| shared/types.ts | 1 | ~60 | Shared type definitions |
-| hub/ | 10 | ~450 | Shell application |
-| sdk/ | 6 | ~300 | Client SDK for remotes |
-| **Total** | **17** | **~810** | |
+```bash
+# Install dependencies
+pnpm install
 
-Compare to your current: **50,000 lines** → **810 lines** (98% reduction)
+# Start development server
+pnpm hub:dev
 
-## Hub Package
-
-### Files
-
-```
-packages/hub/src/
-├── components/
-│   ├── Sidebar.tsx      # 45 lines
-│   ├── Header.tsx       # 30 lines
-│   ├── Footer.tsx       # 15 lines
-│   ├── Breadcrumbs.tsx  # 35 lines
-│   ├── Skeleton.tsx     # 40 lines
-│   ├── IframeContainer.tsx  # 45 lines
-│   └── Layout.tsx       # 55 lines
-├── messaging/
-│   └── hubMessaging.ts  # 55 lines
-├── config/
-│   └── modules.ts       # 30 lines
-├── App.tsx              # 85 lines
-└── styles.css           # 250 lines
+# Build all packages
+pnpm build
 ```
 
-### Key Concepts
-
-1. **One iframe at a time** - No pooling, no circuit breakers
-2. **Direct post-robot usage** - No abstraction layers
-3. **Simple state** - React useState, no state machines
-4. **Skeleton on transition** - Shows while iframe loads
-
-## SDK Package
-
-### Files
+## Project Structure
 
 ```
-packages/sdk/src/
-├── client.ts                    # 50 lines - post-robot wrapper
-├── react/
-│   ├── Provider.tsx             # 60 lines
-│   └── NavigationHijacker.ts    # 70 lines
-├── nextjs/
-│   ├── Provider.tsx             # 65 lines
-│   └── NavigationHijacker.ts    # 60 lines
-└── index.ts                     # 20 lines
+apollo-platform/
+├── packages/
+│   ├── hub/          # Shell application (Next.js)
+│   ├── sdk/          # Client SDK for remote modules
+│   └── shared/       # Shared types and configuration
+├── pnpm-workspace.yaml
+└── package.json
 ```
 
-## Usage
+## Packages
 
-### In a React Remote Module
+| Package | Description |
+|---------|-------------|
+| [@apollo/hub](./packages/hub) | Next.js shell with sidebar, header, footer, and iframe container |
+| [@apollo/sdk](./packages/sdk) | SDK for remote modules to communicate with the hub |
+| @apollo/shared | Shared types, navigation config, and module utilities |
 
-```tsx
-// app.tsx
-import { ApolloProvider, useApollo } from '@apollo/sdk';
+## Adding a New Module
 
-function App() {
-  return (
-    <ApolloProvider moduleId="employees">
-      <EmployeeRoutes />
-    </ApolloProvider>
-  );
-}
+1. Register the module in `packages/shared/config/modules.ts`:
 
-// Inside any component
-function EmployeeList() {
-  const { user, setBreadcrumbs } = useApollo();
-
-  useEffect(() => {
-    setBreadcrumbs([
-      { label: 'Employees', path: '/employees' },
-      { label: 'List' }
-    ]);
-  }, []);
-
-  return <div>Welcome, {user?.name}</div>;
-}
+```typescript
+export const modules: ModuleConfig[] = [
+  {
+    id: 'mymodule',
+    name: 'My Module',
+    pathPrefix: '/mymodule',
+    url: process.env.NEXT_PUBLIC_MYMODULE_URL || 'http://localhost:3005',
+  },
+];
 ```
 
-### In a Next.js Remote Module
+2. Add navigation items in `packages/shared/config/navigation.ts`:
 
-```tsx
-// app/layout.tsx
-import { NextApolloProvider } from '@apollo/sdk';
-
-export default function RootLayout({ children }) {
-  return (
-    <html>
-      <body>
-        <NextApolloProvider moduleId="payroll">
-          {children}
-        </NextApolloProvider>
-      </body>
-    </html>
-  );
-}
-
-// app/reports/page.tsx
-'use client';
-import { useApollo, useApolloNavigation } from '@apollo/sdk';
-
-export default function ReportsPage() {
-  const { setBreadcrumbs } = useApollo();
-  const { push } = useApolloNavigation();
-
-  const handleClick = () => {
-    push('/reports/new'); // Notifies hub + updates local router
-  };
-
-  return <button onClick={handleClick}>New Report</button>;
-}
+```typescript
+export const sidebarNav: NavLevel1[] = [
+  {
+    id: 'mymodule',
+    label: 'My Module',
+    icon: 'box',
+    children: [
+      {
+        id: 'section1',
+        label: 'Section 1',
+        children: [
+          { id: 'page1', label: 'Page 1', path: '/mymodule/page1' },
+        ],
+      },
+    ],
+  },
+];
 ```
 
-## Message Protocol
+3. Configure the module URL via environment variable:
 
-Hub ↔ SDK communication uses post-robot with these message types:
-
-| Message | Direction | Payload | Purpose |
-|---------|-----------|---------|---------|
-| `READY` | SDK → Hub | `{ moduleId }` | Module finished loading |
-| `NAVIGATE` | SDK → Hub | `{ path }` | Request hub navigation |
-| `SET_BREADCRUMBS` | SDK → Hub | `{ items }` | Update breadcrumb trail |
-| `SET_LOADING` | SDK → Hub | `{ loading }` | Show/hide skeleton |
-| `GET_USER` | SDK → Hub | - | Request current user |
-
-## What's NOT Here (On Purpose)
-
-| Removed | Reason |
-|---------|--------|
-| `CircuitBreaker` | You have one iframe. It either works or doesn't. |
-| `ConnectionPool` | You have one connection. |
-| `MessageBridge` | post-robot already handles this. |
-| `PostRobotAdapter` | Unnecessary abstraction. |
-| `LoggerFactory` | Use console.log or your app's logger. |
-| `SingletonManager` | Module-level variables work fine. |
-| `EventEmitter` | Built into browsers. |
-| `DataCache` | What are you caching? |
-
-## Testing Strategy
-
-For this architecture, you need:
-
-1. **Integration test** - Hub loads iframe, SDK sends READY
-2. **Navigation test** - Click link in iframe, hub URL updates
-3. **Breadcrumb test** - SDK updates breadcrumbs, hub displays them
-
-That's maybe 100-150 lines of tests. Not 15,000.
-
-```tsx
-// Example test
-test('SDK notifies hub when ready', async () => {
-  const onReady = jest.fn();
-  initHubMessaging({ onNavigate: jest.fn(), onLoadingChange: jest.fn(), ... });
-  
-  // Simulate SDK sending ready
-  await postRobot.send(hubWindow, 'READY', { moduleId: 'employees' });
-  
-  expect(onReady).toHaveBeenCalledWith('employees');
-});
+```bash
+NEXT_PUBLIC_MYMODULE_URL=http://localhost:3005
 ```
 
-## Migration Path
+## Development
 
-1. Create new `apollo-platform-v2` repo with this structure
-2. Update one remote module to use new SDK
-3. Test in isolation
-4. Gradually migrate other modules
-5. Deprecate old platform
+```bash
+# Run hub in dev mode
+pnpm hub:dev
 
-Don't try to refactor 50k lines. Start fresh.
+# Build SDK
+pnpm sdk:build
+
+# Build all packages
+pnpm build
+
+# Type check all packages
+pnpm -r typecheck
+```
+
+## Prerequisites
+
+- Node.js 18+
+- pnpm 9.15+
+
+## License
+
+MIT

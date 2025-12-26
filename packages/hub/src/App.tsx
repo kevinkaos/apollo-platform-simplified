@@ -1,9 +1,14 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Layout } from './components/Layout';
+import { ShellLayout } from '@apollo/sdk';
 import { IframeContainer } from './components/IframeContainer';
 import { initHubMessaging } from './messaging/hubMessaging';
-import { sidebarNav, getModuleByPath, getModuleUrl } from './config/modules';
-import { BreadcrumbItem, User } from '../shared/types';
+import {
+  sidebarNav,
+  getModuleByPath,
+  resolveModuleUrl,
+} from '@apollo/shared';
+import type { BreadcrumbItem, User, SidebarState } from '@apollo/shared';
+import { getSidebarState, setSidebarState, setCollapsed, toggleSection } from './hooks/sidebarState';
 
 export function App() {
   // Navigation state
@@ -14,7 +19,7 @@ export function App() {
   // UI state
   const [breadcrumbs, setBreadcrumbs] = useState<BreadcrumbItem[]>([]);
   const [loading, setLoading] = useState(false);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarState, setSidebarStateLocal] = useState<SidebarState>(getSidebarState);
 
   // User state (would come from auth in real app)
   const [user] = useState<User | null>({
@@ -32,7 +37,8 @@ export function App() {
     if (module) {
       setLoading(true);
       setCurrentModuleId(module.id);
-      setIframeSrc(getModuleUrl(module.id, path));
+      const moduleUrl = resolveModuleUrl(path);
+      setIframeSrc(moduleUrl);
       setBreadcrumbs([{ label: module.name, path: `/${module.id}` }]);
     } else {
       // No module for this path - show empty state or dashboard
@@ -42,17 +48,41 @@ export function App() {
     }
   }, []);
 
+  // Sidebar handlers
+  const handleToggleSidebarCollapse = useCallback(() => {
+    const newCollapsed = !sidebarState.collapsed;
+    setCollapsed(newCollapsed);
+    setSidebarStateLocal((prev) => ({ ...prev, collapsed: newCollapsed }));
+  }, [sidebarState.collapsed]);
+
+  const handleToggleSidebarSection = useCallback((sectionId: string) => {
+    toggleSection(sectionId);
+    setSidebarStateLocal(getSidebarState());
+  }, []);
+
+  const handleLogout = useCallback(() => {
+    console.log('Logout clicked');
+  }, []);
+
   // Initialize hub messaging
   useEffect(() => {
     const cleanup = initHubMessaging({
       onNavigate: navigate,
       onBreadcrumbsChange: setBreadcrumbs,
       onLoadingChange: setLoading,
+      onLogout: handleLogout,
+      onError: (code) => console.error(`Error: ${code}`),
+      onSidebarStateChange: (state) => {
+        setSidebarState(state);
+        setSidebarStateLocal(state);
+      },
       getUser: () => user,
+      getSidebarState: () => sidebarState,
+      getCurrentRoute: () => ({ path: currentPath }),
     });
 
     return cleanup;
-  }, [navigate, user]);
+  }, [navigate, user, handleLogout, sidebarState, currentPath]);
 
   // Handle browser back/forward
   useEffect(() => {
@@ -70,20 +100,24 @@ export function App() {
   }, []);
 
   return (
-    <Layout
-      sidebarItems={sidebarNav}
-      activePath={currentPath}
-      breadcrumbs={breadcrumbs}
+    <ShellLayout
+      nav={sidebarNav}
+      currentPath={currentPath}
+      sidebarState={sidebarState}
       user={user}
-      sidebarCollapsed={sidebarCollapsed}
+      breadcrumbs={breadcrumbs}
       onNavigate={navigate}
-      onToggleSidebar={() => setSidebarCollapsed(!sidebarCollapsed)}
-      onLogout={() => console.log('Logout clicked')}
+      onToggleSidebarCollapse={handleToggleSidebarCollapse}
+      onToggleSidebarSection={handleToggleSidebarSection}
+      onLogout={handleLogout}
     >
-      <IframeContainer
-        src={iframeSrc}
-        moduleId={currentModuleId}
-      />
-    </Layout>
+      {iframeSrc && currentModuleId && (
+        <IframeContainer
+          src={iframeSrc}
+          moduleId={currentModuleId}
+          visible={!loading}
+        />
+      )}
+    </ShellLayout>
   );
 }

@@ -449,6 +449,114 @@ body {
 }
 
 /* ============================================
+   Skeleton Shell Components
+   ============================================ */
+
+.skeleton-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  position: absolute;
+  inset: 0;
+  background: var(--color-bg);
+}
+
+.skeleton-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: var(--header-height);
+  padding: 0 24px;
+  background: white;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.skeleton-header__breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.skeleton-header__separator {
+  color: var(--color-text-light);
+  font-size: 12px;
+}
+
+.skeleton-header__user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.skeleton-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.skeleton-content {
+  flex: 1;
+  padding: 24px;
+  overflow: hidden;
+}
+
+.skeleton-content__title {
+  margin-bottom: 8px;
+}
+
+.skeleton-content__subtitle {
+  margin-bottom: 24px;
+}
+
+.skeleton-content__body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 32px;
+}
+
+.skeleton-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--footer-height);
+  background: white;
+  border-top: 1px solid var(--color-border);
+}
+
+.skeleton-table {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.skeleton-table__row {
+  display: flex;
+  gap: 16px;
+}
+
+.skeleton-table__cell {
+  flex: 1;
+  height: 40px;
+  background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 4px;
+}
+
+/* Skeleton bar sizes */
+.skeleton-bar--sm {
+  height: 14px;
+}
+
+.skeleton-bar--lg {
+  height: 28px;
+}
+
+/* ============================================
    Login Page
    ============================================ */
 

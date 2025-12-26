@@ -1,4 +1,4 @@
-import { ModuleConfig } from '../types';
+import type { ModuleConfig } from '../types';
 
 export const modules: ModuleConfig[] = [
   {

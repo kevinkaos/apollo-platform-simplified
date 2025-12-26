@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 // Routes that don't require authentication
-const publicRoutes = ['/login', '/403', '/404', '/500'];
+const publicRoutes = ['/login', '/errors/403', '/errors/404', '/errors/500'];
 
 // Routes that should never be processed by middleware
 const skipRoutes = ['/_next', '/api', '/favicon.ico'];

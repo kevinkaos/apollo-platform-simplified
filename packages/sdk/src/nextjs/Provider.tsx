@@ -1,8 +1,11 @@
+'use client';
+
 import React, { createContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import { usePathname } from 'next/navigation';
 import { initSdk, hubClient, isRunningInHub } from '../client';
 import { ShellLayout } from '../components/ShellLayout';
 import { ErrorBoundary } from '../components/ErrorBoundary';
-import { useReactNavigationHijack, type ReactNavigationResult } from './NavigationHijacker';
+import { useNextNavigationHijack, type NextNavigationResult } from './NavigationHijacker';
 import { sidebarNav, getDefaultExpandedSections } from '@apollo/shared';
 import type { User, SidebarState, BreadcrumbItem } from '@apollo/shared';
 
@@ -10,25 +13,25 @@ import type { User, SidebarState, BreadcrumbItem } from '@apollo/shared';
 // Context
 // ============================================
 
-export interface ApolloContextValue {
+export interface NextApolloContextValue {
   user: User | null;
   isInHub: boolean;
   sidebarState: SidebarState;
   breadcrumbs: BreadcrumbItem[];
-  navigation: ReactNavigationResult;
+  navigation: NextNavigationResult;
   setBreadcrumbs: (items: BreadcrumbItem[]) => void;
   toggleSidebarCollapse: () => void;
   toggleSidebarSection: (sectionId: string) => void;
   logout: () => void;
 }
 
-export const ApolloContext = createContext<ApolloContextValue | null>(null);
+export const NextApolloContext = createContext<NextApolloContextValue | null>(null);
 
 // ============================================
 // Provider Props
 // ============================================
 
-interface ApolloProviderProps {
+interface NextApolloProviderProps {
   moduleId: string;
   children: ReactNode;
   excludeNavigationPaths?: string[];
@@ -38,11 +41,12 @@ interface ApolloProviderProps {
 // Provider Component
 // ============================================
 
-export function ApolloProvider({
+export function NextApolloProvider({
   moduleId,
   children,
   excludeNavigationPaths = [],
-}: ApolloProviderProps) {
+}: NextApolloProviderProps) {
+  const pathname = usePathname();
   const isInHub = isRunningInHub();
 
   // State
@@ -55,7 +59,7 @@ export function ApolloProvider({
   const [isInitialized, setIsInitialized] = useState(false);
 
   // Navigation hijacking
-  const navigation = useReactNavigationHijack({
+  const navigation = useNextNavigationHijack({
     moduleId,
     excludePaths: excludeNavigationPaths,
   });
@@ -76,9 +80,7 @@ export function ApolloProvider({
 
         // If no expanded sections, expand based on current path
         if (sidebarData.expandedSections.length === 0) {
-          sidebarData.expandedSections = getDefaultExpandedSections(
-            navigation.currentPath
-          );
+          sidebarData.expandedSections = getDefaultExpandedSections(pathname);
         }
 
         setSidebarState(sidebarData);
@@ -88,7 +90,7 @@ export function ApolloProvider({
         console.error('[Apollo SDK] Init error:', err);
         setIsInitialized(true);
       });
-  }, [moduleId, isInHub, navigation.currentPath]);
+  }, [moduleId, isInHub, pathname]);
 
   // Set breadcrumbs
   const setBreadcrumbs = useCallback(
@@ -140,7 +142,7 @@ export function ApolloProvider({
   }, [isInHub]);
 
   // Context value
-  const contextValue: ApolloContextValue = {
+  const contextValue: NextApolloContextValue = {
     user,
     isInHub,
     sidebarState,
@@ -155,9 +157,9 @@ export function ApolloProvider({
   // Standalone mode - render children without shell
   if (!isInHub) {
     return (
-      <ApolloContext.Provider value={contextValue}>
+      <NextApolloContext.Provider value={contextValue}>
         {children}
-      </ApolloContext.Provider>
+      </NextApolloContext.Provider>
     );
   }
 
@@ -168,11 +170,11 @@ export function ApolloProvider({
 
   // Hub mode - render with shell
   return (
-    <ApolloContext.Provider value={contextValue}>
+    <NextApolloContext.Provider value={contextValue}>
       <ErrorBoundary>
         <ShellLayout
           nav={sidebarNav}
-          currentPath={navigation.currentPath}
+          currentPath={pathname}
           sidebarState={sidebarState}
           user={user}
           breadcrumbs={breadcrumbs}
@@ -184,6 +186,6 @@ export function ApolloProvider({
           {children}
         </ShellLayout>
       </ErrorBoundary>
-    </ApolloContext.Provider>
+    </NextApolloContext.Provider>
   );
 }

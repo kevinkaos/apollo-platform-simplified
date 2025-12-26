@@ -1,49 +1,33 @@
-// Core client
+// ============================================
+// Apollo SDK - Microfrontend SDK for Remote Modules
+// ============================================
+
+// Framework-agnostic client
 export { hubClient, initSdk, isRunningInHub } from './client';
 
-// Components
-export { Sidebar, Header, Footer, ShellLayout, ErrorBoundary } from './components';
+// UI Components (can be used in any framework)
+export * from './components/components';
+export { ShellLayout, type ShellLayoutProps } from './components/ShellLayout';
+export { ErrorBoundary, type ErrorBoundaryProps } from './components/ErrorBoundary';
+export { ErrorDialog, type ErrorDialogProps } from './components/ErrorDialog';
 
-// React integration
+// Vanilla React integration (default)
+// For Next.js, import from '@apollo/sdk/nextjs'
 export {
   ApolloProvider,
   ApolloContext,
-  useNavigationHijack,
+  type ApolloContextValue,
+} from './react/Provider';
+
+export {
+  useReactNavigationHijack,
+  type ReactNavigationResult,
+} from './react/NavigationHijacker';
+
+export {
   useApollo,
   useApolloUser,
-  useSidebarState,
   useBreadcrumbs,
+  useSidebarState,
   useApolloNavigation,
-  type ApolloContextValue,
-  type NavigationHijackOptions,
-} from './react';
-
-// Next.js integration (re-export with Next prefix to avoid confusion)
-export {
-  NextApolloProvider,
-  NextApolloContext,
-  useNextNavigationHijack,
-  useApollo as useNextApollo,
-  useApolloUser as useNextApolloUser,
-  useSidebarState as useNextSidebarState,
-  useBreadcrumbs as useNextBreadcrumbs,
-  useApolloNavigation as useNextApolloNavigation,
-  type NextApolloContextValue,
-  type NextNavigationHijackOptions,
-  type NextNavigationResult,
-} from './nextjs';
-
-// Re-export types from shared
-export type {
-  User,
-  BreadcrumbItem,
-  SidebarState,
-  NavLevel1,
-  NavLevel2,
-  NavLevel3,
-  ModuleConfig,
-  MessageRegistry,
-  MessageType,
-  MessagePayload,
-  ErrorCode,
-} from '@apollo/shared';
+} from './react/hooks';

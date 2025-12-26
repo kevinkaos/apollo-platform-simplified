@@ -1,14 +1,16 @@
+'use client';
+
 import { useContext, useEffect } from 'react';
-import { ApolloContext, type ApolloContextValue } from './Provider';
+import { NextApolloContext, type NextApolloContextValue } from './Provider';
 import type { BreadcrumbItem } from '@apollo/shared';
 
 /**
- * Access the Apollo context (vanilla React)
+ * Access the Apollo context (Next.js)
  */
-export function useApollo(): ApolloContextValue {
-  const context = useContext(ApolloContext);
+export function useApollo(): NextApolloContextValue {
+  const context = useContext(NextApolloContext);
   if (!context) {
-    throw new Error('useApollo must be used within ApolloProvider');
+    throw new Error('useApollo must be used within NextApolloProvider');
   }
   return context;
 }

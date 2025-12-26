@@ -1,27 +1,27 @@
-import { useEffect, useRef, useCallback, useState } from 'react';
+'use client';
+
+import { useEffect, useRef, useCallback } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
 import { hubClient, isRunningInHub } from '../client';
 
-interface UseReactNavigationHijackOptions {
+interface UseNextNavigationHijackOptions {
   moduleId: string;
   excludePaths?: string[];
 }
 
-export interface ReactNavigationResult {
+export interface NextNavigationResult {
   push: (path: string) => void;
   replace: (path: string) => void;
-  currentPath: string;
 }
 
 // Navigation debounce delay in ms
 const NAVIGATION_DEBOUNCE_MS = 50;
 
 /**
- * Vanilla React navigation hijacker
+ * Next.js App Router navigation hijacker
  *
- * Provides bidirectional navigation synchronization between a React app
+ * Provides bidirectional navigation synchronization between Next.js App Router
  * (running in an iframe module) and the parent hub URL.
- *
- * Uses the History API directly instead of a router library.
  *
  * Features:
  * - Intercepts anchor clicks and notifies hub
@@ -29,16 +29,13 @@ const NAVIGATION_DEBOUNCE_MS = 50;
  * - Listens for ROUTE_CHANGE from hub (browser back/forward)
  * - Debounces rapid navigation to prevent message spam
  * - Prevents infinite navigation loops with sync flag
- * - Tracks current path via state
  */
-export function useReactNavigationHijack({
+export function useNextNavigationHijack({
   moduleId,
   excludePaths = [],
-}: UseReactNavigationHijackOptions): ReactNavigationResult {
-  // Track current path
-  const [currentPath, setCurrentPath] = useState(() =>
-    typeof window !== 'undefined' ? window.location.pathname : '/'
-  );
+}: UseNextNavigationHijackOptions) {
+  const router = useRouter();
+  const pathname = usePathname();
 
   // Refs for cleanup and loop prevention
   const isSyncingFromHubRef = useRef(false);
@@ -85,10 +82,8 @@ export function useReactNavigationHijack({
       originalPushStateRef.current!.apply(history, args);
       // Use setTimeout to ensure URL is updated
       setTimeout(() => {
-        const newPath = window.location.pathname;
-        setCurrentPath(newPath);
         if (!isSyncingFromHubRef.current) {
-          notifyHubDebounced(newPath);
+          notifyHubDebounced(window.location.pathname);
         }
       }, 0);
     };
@@ -97,20 +92,16 @@ export function useReactNavigationHijack({
     history.replaceState = function (...args: Parameters<typeof history.replaceState>) {
       originalReplaceStateRef.current!.apply(history, args);
       setTimeout(() => {
-        const newPath = window.location.pathname;
-        setCurrentPath(newPath);
         if (!isSyncingFromHubRef.current) {
-          notifyHubDebounced(newPath);
+          notifyHubDebounced(window.location.pathname);
         }
       }, 0);
     };
 
     // Listen for popstate (browser back/forward within module)
     const handlePopState = () => {
-      const newPath = window.location.pathname;
-      setCurrentPath(newPath);
       if (!isSyncingFromHubRef.current) {
-        notifyHubDebounced(newPath);
+        notifyHubDebounced(window.location.pathname);
       }
     };
     window.addEventListener('popstate', handlePopState);
@@ -156,9 +147,8 @@ export function useReactNavigationHijack({
           fullPath = `${modulePath}?${queryString}`;
         }
 
-        // Navigate using History API
-        history.pushState(null, '', fullPath);
-        setCurrentPath(modulePath);
+        // Navigate using Next.js router
+        router.push(fullPath);
       } finally {
         // Clear flag after a short delay to allow navigation to complete
         setTimeout(() => {
@@ -172,7 +162,7 @@ export function useReactNavigationHijack({
         unsubscribeRouteChangeRef.current();
       }
     };
-  }, [moduleId]);
+  }, [moduleId, router]);
 
   // Hijack anchor clicks
   useEffect(() => {
@@ -203,9 +193,8 @@ export function useReactNavigationHijack({
       const hubPath = `/${moduleId}${normalizedPath}`;
       hubClient.navigate(hubPath);
 
-      // Also update local history
-      history.pushState(null, '', normalizedPath);
-      setCurrentPath(normalizedPath);
+      // Also update local router
+      router.push(normalizedPath);
     };
 
     document.addEventListener('click', handleClick);
@@ -213,7 +202,7 @@ export function useReactNavigationHijack({
     return () => {
       document.removeEventListener('click', handleClick);
     };
-  }, [moduleId, excludePaths]);
+  }, [moduleId, excludePaths, router]);
 
   // Return wrapped navigation functions for programmatic use
   return {
@@ -223,10 +212,9 @@ export function useReactNavigationHijack({
         if (isRunningInHub()) {
           hubClient.navigate(`/${moduleId}${normalizedPath}`);
         }
-        history.pushState(null, '', normalizedPath);
-        setCurrentPath(normalizedPath);
+        router.push(normalizedPath);
       },
-      [moduleId]
+      [moduleId, router]
     ),
     replace: useCallback(
       (path: string) => {
@@ -234,11 +222,9 @@ export function useReactNavigationHijack({
         if (isRunningInHub()) {
           hubClient.navigate(`/${moduleId}${normalizedPath}`);
         }
-        history.replaceState(null, '', normalizedPath);
-        setCurrentPath(normalizedPath);
+        router.replace(normalizedPath);
       },
-      [moduleId]
+      [moduleId, router]
     ),
-    currentPath,
   };
 }

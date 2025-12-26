@@ -6,7 +6,31 @@ export interface ModuleConfig {
   id: string;
   name: string;
   url: string;
+  pathPrefix: string;
   icon?: string;
+}
+
+// ============================================
+// Navigation types (3-level hierarchy)
+// ============================================
+
+export interface NavLevel3 {
+  id: string;
+  label: string;
+  path: string;
+}
+
+export interface NavLevel2 {
+  id: string;
+  label: string;
+  children: NavLevel3[];
+}
+
+export interface NavLevel1 {
+  id: string;
+  label: string;
+  icon?: string;
+  children: NavLevel2[];
 }
 
 export interface NavItem {

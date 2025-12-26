@@ -1,11 +1,11 @@
 import postRobot from 'post-robot';
-import {
+import type {
   HubMessage,
   BreadcrumbItem,
   User,
   SidebarState,
   RouteChangePayload,
-} from '../../shared/types';
+} from '@apollo/shared';
 
 type NavigateHandler = (path: string) => void;
 type BreadcrumbHandler = (items: BreadcrumbItem[]) => void;
@@ -34,19 +34,19 @@ export function initHubMessaging(config: HubMessagingConfig) {
   cancelListeners = [];
 
   // Listen for navigation requests from iframe
-  const cancelNavigate = postRobot.on('NAVIGATE', ({ data }) => {
+  const cancelNavigate = postRobot.on<{ path: string }>('NAVIGATE', ({ data }) => {
     config.onNavigate(data.path);
   });
   cancelListeners.push(cancelNavigate.cancel);
 
   // Listen for breadcrumb updates
-  const cancelBreadcrumbs = postRobot.on('SET_BREADCRUMBS', ({ data }) => {
+  const cancelBreadcrumbs = postRobot.on<{ items: BreadcrumbItem[] }>('SET_BREADCRUMBS', ({ data }) => {
     config.onBreadcrumbsChange(data.items);
   });
   cancelListeners.push(cancelBreadcrumbs.cancel);
 
   // Listen for loading state changes
-  const cancelLoading = postRobot.on('SET_LOADING', ({ data }) => {
+  const cancelLoading = postRobot.on<{ loading: boolean }>('SET_LOADING', ({ data }) => {
     config.onLoadingChange(data.loading);
   });
   cancelListeners.push(cancelLoading.cancel);
@@ -58,7 +58,7 @@ export function initHubMessaging(config: HubMessagingConfig) {
   cancelListeners.push(cancelGetUser.cancel);
 
   // Listen for module ready signal
-  const cancelReady = postRobot.on('READY', ({ data }) => {
+  const cancelReady = postRobot.on<{ moduleId: string }>('READY', ({ data }) => {
     console.log(`Module ready: ${data.moduleId}`);
     config.onLoadingChange(false);
   });
@@ -71,7 +71,7 @@ export function initHubMessaging(config: HubMessagingConfig) {
   cancelListeners.push(cancelLogout.cancel);
 
   // Listen for error reports
-  const cancelError = postRobot.on('ERROR', ({ data }) => {
+  const cancelError = postRobot.on<{ code: 403 | 404 | 500 }>('ERROR', ({ data }) => {
     config.onError(data.code);
   });
   cancelListeners.push(cancelError.cancel);
@@ -83,7 +83,7 @@ export function initHubMessaging(config: HubMessagingConfig) {
   cancelListeners.push(cancelGetSidebarState.cancel);
 
   // Listen for sidebar state updates
-  const cancelSetSidebarState = postRobot.on('SET_SIDEBAR_STATE', ({ data }) => {
+  const cancelSetSidebarState = postRobot.on<SidebarState>('SET_SIDEBAR_STATE', ({ data }) => {
     config.onSidebarStateChange(data);
   });
   cancelListeners.push(cancelSetSidebarState.cancel);
@@ -104,12 +104,12 @@ export function sendToModule(
   iframe: HTMLIFrameElement,
   message: HubMessage
 ): Promise<void> {
-  return postRobot.send(iframe.contentWindow, message.type, message.payload);
+  return postRobot.send(iframe.contentWindow, message.type, (message as { payload?: unknown }).payload) as Promise<void>;
 }
 
 export function sendRouteChangeToModule(
   iframe: HTMLIFrameElement,
   payload: RouteChangePayload
 ): Promise<void> {
-  return postRobot.send(iframe.contentWindow, 'ROUTE_CHANGE', payload);
+  return postRobot.send(iframe.contentWindow, 'ROUTE_CHANGE', payload) as Promise<void>;
 }
