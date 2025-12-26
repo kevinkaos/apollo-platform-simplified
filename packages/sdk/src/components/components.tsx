@@ -1,5 +1,12 @@
 import React from 'react';
-import type { User, BreadcrumbItem, SidebarState, NavLevel1, NavLevel2, NavLevel3 } from '@apollo/shared';
+import type {
+  User,
+  BreadcrumbItem,
+  SidebarState,
+  NavLevel1,
+  NavLevel2,
+  NavLevel3,
+} from '@apollo/shared';
 import { sidebarNav, findActiveNavPath } from '@apollo/shared';
 
 // TODO: Replace these with actual UI library imports
@@ -165,7 +172,9 @@ export function Sidebar({
                   <div key={level2.id} className="apollo-sidebar__level2">
                     <button
                       className={`apollo-sidebar__level2-header ${
-                        activePath.level2 === level2.id ? 'apollo-sidebar__level2-header--active' : ''
+                        activePath.level2 === level2.id
+                          ? 'apollo-sidebar__level2-header--active'
+                          : ''
                       }`}
                       onClick={() => onToggleSection(level2.id)}
                       aria-expanded={isExpanded(level2.id)}

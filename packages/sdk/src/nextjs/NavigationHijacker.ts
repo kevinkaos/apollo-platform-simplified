@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useCallback } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { hubClient, isRunningInHub } from '../client';
 
 interface UseNextNavigationHijackOptions {
@@ -35,7 +35,6 @@ export function useNextNavigationHijack({
   excludePaths = [],
 }: UseNextNavigationHijackOptions) {
   const router = useRouter();
-  const pathname = usePathname();
 
   // Refs for cleanup and loop prevention
   const isSyncingFromHubRef = useRef(false);

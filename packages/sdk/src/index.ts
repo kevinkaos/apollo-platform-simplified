@@ -13,16 +13,9 @@ export { ErrorDialog, type ErrorDialogProps } from './components/ErrorDialog';
 
 // Vanilla React integration (default)
 // For Next.js, import from '@apollo/sdk/nextjs'
-export {
-  ApolloProvider,
-  ApolloContext,
-  type ApolloContextValue,
-} from './react/Provider';
+export { ApolloProvider, ApolloContext, type ApolloContextValue } from './react/Provider';
 
-export {
-  useReactNavigationHijack,
-  type ReactNavigationResult,
-} from './react/NavigationHijacker';
+export { useReactNavigationHijack, type ReactNavigationResult } from './react/NavigationHijacker';
 
 export {
   useApollo,

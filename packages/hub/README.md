@@ -33,11 +33,11 @@ src/
 
 ## Key Components
 
-| Component | Purpose |
-|-----------|---------|
-| `ModuleLoader` | Loads iframes, manages loading state, handles messaging |
-| `IframeContainer` | Renders sandboxed iframes with security attributes |
-| `ShellLayout` | Main layout with sidebar, header, and footer (from SDK) |
+| Component         | Purpose                                                 |
+| ----------------- | ------------------------------------------------------- |
+| `ModuleLoader`    | Loads iframes, manages loading state, handles messaging |
+| `IframeContainer` | Renders sandboxed iframes with security attributes      |
+| `ShellLayout`     | Main layout with sidebar, header, and footer (from SDK) |
 
 ## Features
 
@@ -52,23 +52,23 @@ src/
 
 ### Incoming (from modules)
 
-| Message | Description |
-|---------|-------------|
-| `READY` | Module finished loading |
-| `NAVIGATE` | Module requests navigation |
-| `SET_BREADCRUMBS` | Update breadcrumb trail |
-| `SET_LOADING` | Toggle loading state |
-| `GET_USER` | Request user data |
-| `LOGOUT` | Request logout |
-| `ERROR` | Report 403/404/500 error |
+| Message           | Description                |
+| ----------------- | -------------------------- |
+| `READY`           | Module finished loading    |
+| `NAVIGATE`        | Module requests navigation |
+| `SET_BREADCRUMBS` | Update breadcrumb trail    |
+| `SET_LOADING`     | Toggle loading state       |
+| `GET_USER`        | Request user data          |
+| `LOGOUT`          | Request logout             |
+| `ERROR`           | Report 403/404/500 error   |
 
 ### Outgoing (to modules)
 
-| Message | Description |
-|---------|-------------|
-| `ROUTE_CHANGE` | Browser back/forward navigation |
-| `USER_DATA` | Response to GET_USER |
-| `SIDEBAR_STATE` | Response to GET_SIDEBAR_STATE |
+| Message         | Description                     |
+| --------------- | ------------------------------- |
+| `ROUTE_CHANGE`  | Browser back/forward navigation |
+| `USER_DATA`     | Response to GET_USER            |
+| `SIDEBAR_STATE` | Response to GET_SIDEBAR_STATE   |
 
 ## Configuration
 

@@ -22,7 +22,10 @@ function ErrorPage({ code, title, message }: ErrorPageProps) {
           <button onClick={() => router.back()} className="error-page__btn">
             Go Back
           </button>
-          <button onClick={() => router.push('/employees/list')} className="error-page__btn error-page__btn--primary">
+          <button
+            onClick={() => router.push('/employees/list')}
+            className="error-page__btn error-page__btn--primary"
+          >
             Go Home
           </button>
         </div>

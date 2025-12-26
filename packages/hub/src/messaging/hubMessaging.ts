@@ -40,9 +40,12 @@ export function initHubMessaging(config: HubMessagingConfig) {
   cancelListeners.push(cancelNavigate.cancel);
 
   // Listen for breadcrumb updates
-  const cancelBreadcrumbs = postRobot.on<{ items: BreadcrumbItem[] }>('SET_BREADCRUMBS', ({ data }) => {
-    config.onBreadcrumbsChange(data.items);
-  });
+  const cancelBreadcrumbs = postRobot.on<{ items: BreadcrumbItem[] }>(
+    'SET_BREADCRUMBS',
+    ({ data }) => {
+      config.onBreadcrumbsChange(data.items);
+    }
+  );
   cancelListeners.push(cancelBreadcrumbs.cancel);
 
   // Listen for loading state changes
@@ -100,11 +103,12 @@ export function initHubMessaging(config: HubMessagingConfig) {
   };
 }
 
-export function sendToModule(
-  iframe: HTMLIFrameElement,
-  message: HubMessage
-): Promise<void> {
-  return postRobot.send(iframe.contentWindow, message.type, (message as { payload?: unknown }).payload) as Promise<void>;
+export function sendToModule(iframe: HTMLIFrameElement, message: HubMessage): Promise<void> {
+  return postRobot.send(
+    iframe.contentWindow,
+    message.type,
+    (message as { payload?: unknown }).payload
+  ) as Promise<void>;
 }
 
 export function sendRouteChangeToModule(

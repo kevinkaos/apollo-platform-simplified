@@ -80,11 +80,7 @@ export default function LoginPage() {
             />
           </div>
 
-          <button
-            type="submit"
-            className="login-page__submit"
-            disabled={isLoading}
-          >
+          <button type="submit" className="login-page__submit" disabled={isLoading}>
             {isLoading ? 'Signing in...' : 'Sign in'}
           </button>
         </form>

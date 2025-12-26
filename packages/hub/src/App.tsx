@@ -2,13 +2,14 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { ShellLayout } from '@apollo/sdk';
 import { IframeContainer } from './components/IframeContainer';
 import { initHubMessaging } from './messaging/hubMessaging';
-import {
-  sidebarNav,
-  getModuleByPath,
-  resolveModuleUrl,
-} from '@apollo/shared';
+import { sidebarNav, getModuleByPath, resolveModuleUrl } from '@apollo/shared';
 import type { BreadcrumbItem, User, SidebarState } from '@apollo/shared';
-import { getSidebarState, setSidebarState, setCollapsed, toggleSection } from './hooks/sidebarState';
+import {
+  getSidebarState,
+  setSidebarState,
+  setCollapsed,
+  toggleSection,
+} from './hooks/sidebarState';
 
 export function App() {
   // Navigation state
@@ -33,13 +34,13 @@ export function App() {
     setCurrentPath(path);
     window.history.pushState({}, '', path);
 
-    const module = getModuleByPath(path);
-    if (module) {
+    const currentModule = getModuleByPath(path);
+    if (currentModule) {
       setLoading(true);
-      setCurrentModuleId(module.id);
+      setCurrentModuleId(currentModule.id);
       const moduleUrl = resolveModuleUrl(path);
       setIframeSrc(moduleUrl);
-      setBreadcrumbs([{ label: module.name, path: `/${module.id}` }]);
+      setBreadcrumbs([{ label: currentModule.name, path: `/${currentModule.id}` }]);
     } else {
       // No module for this path - show empty state or dashboard
       setCurrentModuleId(null);
@@ -97,7 +98,7 @@ export function App() {
   // Initialize from current URL on mount
   useEffect(() => {
     navigate(window.location.pathname);
-  }, []);
+  }, [navigate]);
 
   return (
     <ShellLayout
@@ -112,11 +113,7 @@ export function App() {
       onLogout={handleLogout}
     >
       {iframeSrc && currentModuleId && (
-        <IframeContainer
-          src={iframeSrc}
-          moduleId={currentModuleId}
-          visible={!loading}
-        />
+        <IframeContainer src={iframeSrc} moduleId={currentModuleId} visible={!loading} />
       )}
     </ShellLayout>
   );

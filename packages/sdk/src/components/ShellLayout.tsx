@@ -34,9 +34,7 @@ export function ShellLayout({
 }: ShellLayoutProps) {
   return (
     <div
-      className={`apollo-shell ${
-        sidebarState.collapsed ? 'apollo-shell--sidebar-collapsed' : ''
-      }`}
+      className={`apollo-shell ${sidebarState.collapsed ? 'apollo-shell--sidebar-collapsed' : ''}`}
     >
       <Sidebar
         nav={nav}

@@ -33,9 +33,7 @@ export default function RootLayout({ children }) {
   return (
     <html>
       <body>
-        <NextApolloProvider moduleId="my-module">
-          {children}
-        </NextApolloProvider>
+        <NextApolloProvider moduleId="my-module">{children}</NextApolloProvider>
       </body>
     </html>
   );
@@ -75,10 +73,7 @@ push('/dashboard');
 Declaratively set breadcrumbs.
 
 ```tsx
-useBreadcrumbs([
-  { label: 'Home', path: '/' },
-  { label: 'Settings' },
-]);
+useBreadcrumbs([{ label: 'Home', path: '/' }, { label: 'Settings' }]);
 ```
 
 ### `useSidebarState()`
@@ -130,11 +125,11 @@ Modal dialog for displaying errors.
 
 ## Entry Points
 
-| Import | Use Case |
-|--------|----------|
-| `@apollo/sdk` | Main SDK, React hooks, components |
-| `@apollo/sdk/react` | React-specific exports |
-| `@apollo/sdk/nextjs` | Next.js App Router integration |
+| Import               | Use Case                          |
+| -------------------- | --------------------------------- |
+| `@apollo/sdk`        | Main SDK, React hooks, components |
+| `@apollo/sdk/react`  | React-specific exports            |
+| `@apollo/sdk/nextjs` | Next.js App Router integration    |
 
 ## Types
 

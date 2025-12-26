@@ -23,12 +23,6 @@ interface HubClient {
 
 let isInitialized = false;
 
-function assertInIframe(): void {
-  if (window === window.parent) {
-    console.warn('[Apollo SDK] Not running inside hub iframe. Messages will be no-ops.');
-  }
-}
-
 function sendToHub<T = void>(type: string, payload?: unknown): Promise<T> {
   if (!isRunningInHub()) {
     return Promise.resolve(undefined as T);
@@ -43,8 +37,7 @@ export const hubClient: HubClient = {
 
   setLoading: (loading: boolean) => sendToHub('SET_LOADING', { loading }),
 
-  getUser: () =>
-    sendToHub<{ user: User | null }>('GET_USER').then((res) => res?.user ?? null),
+  getUser: () => sendToHub<{ user: User | null }>('GET_USER').then((res) => res?.user ?? null),
 
   notifyReady: (moduleId: string) => sendToHub('READY', { moduleId }),
 

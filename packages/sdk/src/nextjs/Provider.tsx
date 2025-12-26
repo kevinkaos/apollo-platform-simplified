@@ -156,11 +156,7 @@ export function NextApolloProvider({
 
   // Standalone mode - render children without shell
   if (!isInHub) {
-    return (
-      <NextApolloContext.Provider value={contextValue}>
-        {children}
-      </NextApolloContext.Provider>
-    );
+    return <NextApolloContext.Provider value={contextValue}>{children}</NextApolloContext.Provider>;
   }
 
   // Don't render until initialized

@@ -43,9 +43,12 @@ export function ModuleLoader({ user, onLogout }: ModuleLoaderProps) {
   const skeletonStartTimeRef = useRef<number>(Date.now());
 
   // Navigate handler (from sidebar clicks or SDK messages)
-  const handleNavigate = useCallback((path: string) => {
-    router.push(path);
-  }, [router]);
+  const handleNavigate = useCallback(
+    (path: string) => {
+      router.push(path);
+    },
+    [router]
+  );
 
   // Ready handler (SDK signals module loaded)
   const handleReady = useCallback((moduleId: string) => {
@@ -67,9 +70,12 @@ export function ModuleLoader({ user, onLogout }: ModuleLoaderProps) {
   }, []);
 
   // Error handler
-  const handleError = useCallback((code: 403 | 404 | 500) => {
-    router.push(`/errors/${code}`);
-  }, [router]);
+  const handleError = useCallback(
+    (code: 403 | 404 | 500) => {
+      router.push(`/errors/${code}`);
+    },
+    [router]
+  );
 
   // Initialize messaging
   useEffect(() => {
@@ -158,7 +164,7 @@ export function ModuleLoader({ user, onLogout }: ModuleLoaderProps) {
     setSidebarStateLocal(getSidebarState());
   }, []);
 
-  const module = getModuleByPath(pathname);
+  const currentModule = getModuleByPath(pathname);
 
   return (
     <ShellLayout
@@ -176,11 +182,11 @@ export function ModuleLoader({ user, onLogout }: ModuleLoaderProps) {
       {loading && <SkeletonShell />}
 
       {/* Iframe (hidden until ready) */}
-      {iframeSrc && module && (
+      {iframeSrc && currentModule && (
         <IframeContainer
           ref={iframeRef}
           src={iframeSrc}
-          moduleId={module.id}
+          moduleId={currentModule.id}
           visible={!loading}
         />
       )}

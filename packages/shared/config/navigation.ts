@@ -79,9 +79,11 @@ export const sidebarNav: NavLevel1[] = [
 /**
  * Find active nav items by path
  */
-export function findActiveNavPath(
-  path: string
-): { level1?: string; level2?: string; level3?: string } {
+export function findActiveNavPath(path: string): {
+  level1?: string;
+  level2?: string;
+  level3?: string;
+} {
   for (const l1 of sidebarNav) {
     for (const l2 of l1.children) {
       for (const l3 of l2.children) {

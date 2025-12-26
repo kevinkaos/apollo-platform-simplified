@@ -80,11 +80,7 @@ export type MessageType =
   | 'GET_INITIAL_ROUTE';
 
 // Hub → SDK messages
-export type HubToSdkMessageType =
-  | 'ROUTE_CHANGE'
-  | 'USER_DATA'
-  | 'SIDEBAR_STATE'
-  | 'INITIAL_ROUTE';
+export type HubToSdkMessageType = 'ROUTE_CHANGE' | 'USER_DATA' | 'SIDEBAR_STATE' | 'INITIAL_ROUTE';
 
 export interface BaseMessage {
   type: MessageType;

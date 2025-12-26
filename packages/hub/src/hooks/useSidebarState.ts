@@ -48,6 +48,7 @@ export function useSidebarState(currentPath: string) {
 
     setState(loaded);
     setIsInitialized(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Persist to localStorage on change

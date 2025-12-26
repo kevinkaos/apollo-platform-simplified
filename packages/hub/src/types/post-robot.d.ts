@@ -12,11 +12,7 @@ declare module 'post-robot' {
       event: string,
       handler: (event: PostRobotEvent<T>) => unknown
     ): PostRobotCancellable;
-    send(
-      window: Window | null,
-      event: string,
-      data?: unknown
-    ): Promise<unknown>;
+    send(window: Window | null, event: string, data?: unknown): Promise<unknown>;
   }
 
   const postRobot: PostRobot;

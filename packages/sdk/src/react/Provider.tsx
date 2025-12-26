@@ -76,9 +76,7 @@ export function ApolloProvider({
 
         // If no expanded sections, expand based on current path
         if (sidebarData.expandedSections.length === 0) {
-          sidebarData.expandedSections = getDefaultExpandedSections(
-            navigation.currentPath
-          );
+          sidebarData.expandedSections = getDefaultExpandedSections(navigation.currentPath);
         }
 
         setSidebarState(sidebarData);
@@ -154,11 +152,7 @@ export function ApolloProvider({
 
   // Standalone mode - render children without shell
   if (!isInHub) {
-    return (
-      <ApolloContext.Provider value={contextValue}>
-        {children}
-      </ApolloContext.Provider>
-    );
+    return <ApolloContext.Provider value={contextValue}>{children}</ApolloContext.Provider>;
   }
 
   // Don't render until initialized
