@@ -6,6 +6,7 @@
   ],
   "packageManager": "pnpm@9.15.0",
   "scripts": {
+    "dev": "pnpm --filter @apollo/hub --filter @apollo/sdk dev",
     "build": "pnpm -r build",
     "test": "pnpm -r test",
     "lint": "pnpm -r lint",
